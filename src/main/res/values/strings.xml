@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GPS Speedometer</string>
+    <string name="search_hint">Search destination…</string>
+    <string name="reset_trip">Reset Trip</string>
+    <string name="gps_searching">Searching GPS…</string>
+    <string name="gps_active">GPS Active</string>
+    <string name="gps_denied">GPS Permission denied</string>
+    <string name="gps_unavailable">GPS Unavailable</string>
+    <string name="kmh">km/h</string>
+    <string name="max_label">Max</string>
+    <string name="avg_label">Avg</string>
+    <string name="km_label">km</string>
+    <string name="time_label">Time</string>
+    <string name="gforce_label">G-Force</string>
+    <string name="total_odo_label">Total Odo</string>
+    <string name="trip_log_title">Trip Log History</string>
+    <string name="save_trip">Save to Log</string>
+    <string name="clear_log">Clear Log</string>
+    <string name="no_trips_logged">No trips recorded yet.</string>
+    <string name="theme_toggle_label">Theme Toggle</string>
+    <string name="pip_mode_label">Mini Window Mode</string>
+    <string name="center_map">Center on me</string>
+    <string name="clear_route">Clear route</string>
+    <string name="no_results">No results found</string>
+    <string name="search_failed">Search failed. Try again.</string>
+    <string name="permission_rationale">GPS permission is required to show your speed and location on the map.</string>
+    <string name="overlay_permission_title">Overlay Permission</string>
+    <string name="overlay_permission_msg">To use the draggable floating window over other apps, please enable Display over other apps permission.</string>
+    
+    <!-- Driving Modes -->
+    <string name="mode_calm">🧘 CALM MODE</string>
+    <string name="mode_eco">🌱 ECO MODE</string>
+    <string name="mode_traffic">🚗 TRAFFIC MODE</string>
+    <string name="mode_aggressive">🏁 AGGRESSIVE MODE</string>
+    <string name="select_drive_mode">Select Driving Mode</string>
+    <string name="menu_title">Dashboard Options</string>
+</resources>

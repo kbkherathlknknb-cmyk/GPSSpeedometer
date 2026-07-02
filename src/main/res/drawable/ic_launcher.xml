@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Dark background circle -->
+    <path
+        android:fillColor="#0A0E1A"
+        android:pathData="M54,0 C83.82,0 108,24.18 108,54 C108,83.82 83.82,108 54,108 C24.18,108 0,83.82 0,54 C0,24.18 24.18,0 54,0 Z" />
+    <!-- Speedometer arc -->
+    <path
+        android:strokeColor="#00E5FF"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000"
+        android:pathData="M22,78 A38,38 0 1 1 86,78" />
+    <!-- Center hub -->
+    <path
+        android:fillColor="#FF6D00"
+        android:pathData="M54,50 A6,6 0 1 1 53.9,50 Z" />
+    <!-- Needle -->
+    <path
+        android:fillColor="#FF6D00"
+        android:pathData="M51,54 L76,34 L57,58 Z" />
+</vector>

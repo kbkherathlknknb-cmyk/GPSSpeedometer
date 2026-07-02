@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Dark mode palette (Automotive Carbon & Neon Cyan) -->
+    <color name="bg_primary">#FF0A0E1A</color>
+    <color name="bg_secondary">#FF111827</color>
+    <color name="bg_card">#B3111827</color>
+    <color name="bg_card_solid">#FF161F30</color>
+    <color name="glass_border">#1A00E5FF</color>
+
+    <!-- Speed accent colors -->
+    <color name="speed_cyan">#FF00E5FF</color>
+    <color name="speed_cyan_dim">#2600E5FF</color>
+    <color name="speed_cyan_glow">#4D00E5FF</color>
+    <color name="speed_orange">#FFFF6D00</color>
+    <color name="speed_green">#FF00E676</color>
+    <color name="speed_red">#FFFF1744</color>
+
+    <!-- Text colors -->
+    <color name="text_primary">#FFE2E8F0</color>
+    <color name="text_secondary">#B3E2E8F0</color>
+    <color name="text_muted">#66E2E8F0</color>
+
+    <!-- Route -->
+    <color name="route_line">#FF00E5FF</color>
+    <color name="route_glow">#2600E5FF</color>
+
+    <!-- System -->
+    <color name="status_bar">#FF070A14</color>
+    <color name="transparent">#00000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+</resources>

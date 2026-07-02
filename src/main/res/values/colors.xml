@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Light mode palette (Sapphire & Clean Glass) -->
+    <color name="bg_primary">#FFF5F8FF</color>
+    <color name="bg_secondary">#FFE8F0FE</color>
+    <color name="bg_card">#CCFFFFFF</color>
+    <color name="bg_card_solid">#FFFFFFFF</color>
+    <color name="glass_border">#330066CC</color>
+
+    <!-- Speed accent colors -->
+    <color name="speed_cyan">#FF0066CC</color>
+    <color name="speed_cyan_dim">#1A0066CC</color>
+    <color name="speed_cyan_glow">#330066CC</color>
+    <color name="speed_orange">#FFD9534F</color>
+    <color name="speed_green">#FF00A86B</color>
+    <color name="speed_red">#FFD32F2F</color>
+
+    <!-- Text colors -->
+    <color name="text_primary">#FF0F172A</color>
+    <color name="text_secondary">#B3334155</color>
+    <color name="text_muted">#8064748B</color>
+
+    <!-- Route -->
+    <color name="route_line">#FF0066CC</color>
+    <color name="route_glow">#260066CC</color>
+
+    <!-- System -->
+    <color name="status_bar">#FFF5F8FF</color>
+    <color name="transparent">#00000000</color>
+    <color name="white">#FFFFFFFF</color>
+    <color name="black">#FF000000</color>
+</resources>

@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetRoot"
+    android:layout_width="160dp"
+    android:layout_height="wrap_content"
+    android:background="@drawable/card_glass_bg"
+    android:orientation="vertical"
+    android:padding="10dp"
+    android:elevation="8dp">
+
+    <!-- Header: App Name / Expand / Close -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
+
+        <View
+            android:layout_width="6dp"
+            android:layout_height="6dp"
+            android:background="@drawable/gps_dot_green" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="6dp"
+            android:layout_weight="1"
+            android:text="SPEEDO"
+            android:textColor="@color/text_secondary"
+            android:textSize="10sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/widgetExpandBtn"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_marginEnd="6dp"
+            android:padding="2dp"
+            android:src="@drawable/ic_pip_mode"
+            android:tint="@color/speed_cyan"
+            android:contentDescription="Expand" />
+
+        <ImageView
+            android:id="@+id/widgetCloseBtn"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:padding="2dp"
+            android:src="@drawable/ic_close"
+            android:tint="@color/text_muted"
+            android:contentDescription="Close" />
+    </LinearLayout>
+
+    <!-- Main Speed Display -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:layout_marginTop="4dp">
+
+        <TextView
+            android:id="@+id/widgetSpeedText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="monospace"
+            android:text="0"
+            android:textColor="@color/speed_cyan"
+            android:textSize="36sp"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widgetUnitText"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="4dp"
+            android:text="km/h"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <!-- Direction & Acceleration -->
+    <TextView
+        android:id="@+id/widgetSubText"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="N • 0.0G"
+        android:textColor="@color/text_primary"
+        android:textSize="11sp"
+        android:fontFamily="monospace"
+        android:layout_marginTop="2dp" />
+
+</LinearLayout>
