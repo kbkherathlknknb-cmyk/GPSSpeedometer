@@ -1,0 +1,328 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="horizontal"
+    android:gravity="center"
+    android:paddingHorizontal="16dp"
+    android:paddingVertical="6dp">
+
+    <!-- ============ LEFT COLUMN: GAUGE + COMPASS ============ -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:orientation="vertical"
+        android:gravity="center">
+
+        <FrameLayout
+            android:id="@+id/gaugeContainer"
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:gravity="center">
+
+            <com.gps.speedometer.SpeedGaugeView
+                android:id="@+id/speedGauge"
+                android:layout_width="230dp"
+                android:layout_height="230dp"
+                android:layout_gravity="center" />
+        </FrameLayout>
+
+        <LinearLayout
+            android:id="@+id/compassGroup"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:background="@drawable/compass_background"
+            android:layout_marginTop="4dp"
+            android:paddingHorizontal="12dp"
+            android:paddingVertical="4dp">
+
+            <ImageView
+                android:id="@+id/compassArrow"
+                android:layout_width="18dp"
+                android:layout_height="18dp"
+                android:src="@drawable/ic_compass_arrow"
+                android:contentDescription="Compass" />
+
+            <TextView
+                android:id="@+id/headingText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:text="0°"
+                android:textColor="@color/speed_cyan"
+                android:textSize="13sp"
+                android:fontFamily="monospace"
+                android:textStyle="bold"
+                android:minWidth="36dp"
+                android:gravity="end" />
+
+            <TextView
+                android:id="@+id/cardinalText"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="6dp"
+                android:text="N"
+                android:textColor="@color/text_secondary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:minWidth="20dp" />
+        </LinearLayout>
+    </LinearLayout>
+
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:background="@color/text_muted"
+        android:alpha="0.15"
+        android:layout_marginHorizontal="12dp"
+        android:layout_marginVertical="8dp" />
+
+    <!-- ============ RIGHT COLUMN: TELEMETRY + STATS + ACTIONS ============ -->
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="match_parent"
+        android:layout_weight="1.1"
+        android:orientation="vertical"
+        android:gravity="center_vertical"
+        android:paddingStart="4dp">
+
+        <!-- F1 Telemetry Bar -->
+        <com.gps.speedometer.SportyAccelerationView
+            android:id="@+id/sportyAccelView"
+            android:layout_width="match_parent"
+            android:layout_height="56dp"
+            android:layout_marginBottom="8dp" />
+
+        <!-- 5 Stats Cards Grid -->
+        <LinearLayout
+            android:id="@+id/statsGroup"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="12dp">
+
+            <!-- Max Speed -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="2dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/card_background"
+                android:paddingVertical="6dp">
+
+                <TextView
+                    android:id="@+id/maxSpeed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="monospace"
+                    android:textStyle="bold"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/max_label"
+                    android:textColor="@color/text_muted"
+                    android:textSize="9sp"
+                    android:textAllCaps="true" />
+            </LinearLayout>
+
+            <!-- Avg Speed -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="2dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/card_background"
+                android:paddingVertical="6dp">
+
+                <TextView
+                    android:id="@+id/avgSpeed"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="monospace"
+                    android:textStyle="bold"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/avg_label"
+                    android:textColor="@color/text_muted"
+                    android:textSize="9sp"
+                    android:textAllCaps="true" />
+            </LinearLayout>
+
+            <!-- Trip Distance -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="2dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/card_background"
+                android:paddingVertical="6dp">
+
+                <TextView
+                    android:id="@+id/distanceText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0.0"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="monospace"
+                    android:textStyle="bold"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/km_label"
+                    android:textColor="@color/text_muted"
+                    android:textSize="9sp"
+                    android:textAllCaps="true" />
+            </LinearLayout>
+
+            <!-- Total Odo -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="2dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/card_background"
+                android:paddingVertical="6dp">
+
+                <TextView
+                    android:id="@+id/totalOdoText"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="0.0"
+                    android:textColor="@color/speed_green"
+                    android:fontFamily="monospace"
+                    android:textStyle="bold"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/total_odo_label"
+                    android:textColor="@color/text_muted"
+                    android:textSize="9sp"
+                    android:textAllCaps="true" />
+            </LinearLayout>
+
+            <!-- Trip Time -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="2dp"
+                android:orientation="vertical"
+                android:gravity="center"
+                android:background="@drawable/card_background"
+                android:paddingVertical="6dp">
+
+                <TextView
+                    android:id="@+id/tripTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="00:00"
+                    android:textColor="@color/text_primary"
+                    android:fontFamily="monospace"
+                    android:textStyle="bold"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/time_label"
+                    android:textColor="@color/text_muted"
+                    android:textSize="9sp"
+                    android:textAllCaps="true" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Actions -->
+        <LinearLayout
+            android:id="@+id/tripActionsBar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:orientation="horizontal">
+
+            <LinearLayout
+                android:id="@+id/btnResetTrip"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/btn_subtle_background"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="6dp"
+                android:layout_marginEnd="10dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/ic_refresh"
+                    android:tint="@color/text_secondary"
+                    android:contentDescription="Reset" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="@string/reset_trip"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+
+            <LinearLayout
+                android:id="@+id/btnTripLog"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:background="@drawable/btn_subtle_background"
+                android:paddingHorizontal="14dp"
+                android:paddingVertical="6dp"
+                android:clickable="true"
+                android:focusable="true">
+
+                <ImageView
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:src="@drawable/ic_location_pin"
+                    android:tint="@color/speed_cyan"
+                    android:contentDescription="Log" />
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:text="Trip Log"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+
+</LinearLayout>

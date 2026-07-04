@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_primary"
+    android:padding="8dp">
+
+    <!-- Search Bar -->
+    <LinearLayout
+        android:id="@+id/searchContainer"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:background="@drawable/search_background"
+        android:layout_marginBottom="8dp"
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="8dp">
+
+        <ImageView
+            android:layout_width="18dp"
+            android:layout_height="18dp"
+            android:src="@drawable/ic_search"
+            android:tint="@color/text_muted"
+            android:contentDescription="Search" />
+
+        <EditText
+            android:id="@+id/searchInput"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:background="@null"
+            android:hint="Search location in Google Maps..."
+            android:textColorHint="@color/text_muted"
+            android:textColor="@color/text_primary"
+            android:textSize="14sp"
+            android:singleLine="true"
+            android:imeOptions="actionSearch"
+            android:inputType="text" />
+
+        <ImageView
+            android:id="@+id/btnClearSearch"
+            android:layout_width="22dp"
+            android:layout_height="22dp"
+            android:src="@drawable/ic_close"
+            android:tint="@color/text_muted"
+            android:visibility="gone"
+            android:clickable="true"
+            android:focusable="true"
+            android:padding="2dp"
+            android:contentDescription="Clear search" />
+    </LinearLayout>
+
+    <!-- Google Maps WebView Container -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipChildren="true">
+
+        <WebView
+            android:id="@+id/googleMapsWebView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:clipToOutline="true"
+            android:outlineProvider="background"
+            android:background="@drawable/map_clip_background" />
+
+        <ImageView
+            android:id="@+id/btnCenterMap"
+            android:layout_width="44dp"
+            android:layout_height="44dp"
+            android:layout_gravity="bottom|end"
+            android:layout_margin="14dp"
+            android:background="@drawable/fab_background"
+            android:src="@drawable/ic_my_location"
+            android:tint="@color/text_primary"
+            android:padding="10dp"
+            android:elevation="6dp"
+            android:clickable="true"
+            android:focusable="true"
+            android:contentDescription="Center map" />
+    </FrameLayout>
+
+</LinearLayout>

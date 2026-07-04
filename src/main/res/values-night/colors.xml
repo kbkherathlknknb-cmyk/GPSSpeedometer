@@ -14,6 +14,7 @@
     <color name="speed_orange">#FFFF6D00</color>
     <color name="speed_green">#FF00E676</color>
     <color name="speed_red">#FFFF1744</color>
+    <color name="mode_traffic_amber">#FFFFB300</color>
 
     <!-- Text colors -->
     <color name="text_primary">#FFE2E8F0</color>

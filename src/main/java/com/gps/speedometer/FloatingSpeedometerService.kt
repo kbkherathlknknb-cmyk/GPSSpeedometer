@@ -35,6 +35,7 @@ class FloatingSpeedometerService : Service(), SensorEngine.SensorCallback {
     private var widgetSpeedText: TextView? = null
     private var widgetUnitText: TextView? = null
     private var widgetSubText: TextView? = null
+    private var widgetGauge: SpeedGaugeView? = null
 
     private var currentDirection = "N"
     private var currentGForce = 0.0f
@@ -60,6 +61,7 @@ class FloatingSpeedometerService : Service(), SensorEngine.SensorCallback {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         isMph = intent?.getBooleanExtra("IS_MPH", false) ?: false
         widgetUnitText?.text = if (isMph) "mph" else "km/h"
+        widgetGauge?.setUnit(if (isMph) "mph" else "km/h")
         return START_STICKY
     }
 
@@ -85,6 +87,7 @@ class FloatingSpeedometerService : Service(), SensorEngine.SensorCallback {
         widgetSpeedText = floatingView?.findViewById(R.id.widgetSpeedText)
         widgetUnitText = floatingView?.findViewById(R.id.widgetUnitText)
         widgetSubText = floatingView?.findViewById(R.id.widgetSubText)
+        widgetGauge = floatingView?.findViewById(R.id.widgetSpeedGauge)
 
         floatingView?.findViewById<ImageView>(R.id.widgetCloseBtn)?.setOnClickListener {
             stopSelf()
@@ -148,11 +151,13 @@ class FloatingSpeedometerService : Service(), SensorEngine.SensorCallback {
     private fun updateSpeed(location: Location) {
         if (!location.hasSpeed() || location.speed < 0.5f) {
             widgetSpeedText?.text = "0"
+            widgetGauge?.setSpeed(0f)
             return
         }
         val speedMs = location.speed
         val displaySpeed = if (isMph) speedMs * 2.23694f else speedMs * 3.6f
         widgetSpeedText?.text = displaySpeed.roundToInt().toString()
+        widgetGauge?.setSpeed(displaySpeed)
     }
 
     override fun onHeadingChanged(azimuth: Float, cardinal: String) {
@@ -162,6 +167,7 @@ class FloatingSpeedometerService : Service(), SensorEngine.SensorCallback {
 
     override fun onAccelerationChanged(accelerationMs2: Float, gForce: Float) {
         currentGForce = gForce
+        widgetGauge?.setGForce(gForce)
         updateSubText()
     }
 

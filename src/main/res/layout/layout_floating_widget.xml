@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widgetRoot"
-    android:layout_width="160dp"
+    android:layout_width="170dp"
     android:layout_height="wrap_content"
     android:background="@drawable/card_glass_bg"
     android:orientation="vertical"
-    android:padding="10dp"
+    android:padding="8dp"
     android:elevation="8dp">
 
     <!-- Header: App Name / Expand / Close -->
@@ -50,34 +50,13 @@
             android:contentDescription="Close" />
     </LinearLayout>
 
-    <!-- Main Speed Display -->
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:layout_marginTop="4dp">
-
-        <TextView
-            android:id="@+id/widgetSpeedText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:fontFamily="monospace"
-            android:text="0"
-            android:textColor="@color/speed_cyan"
-            android:textSize="36sp"
-            android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/widgetUnitText"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:text="km/h"
-            android:textColor="@color/text_secondary"
-            android:textSize="12sp"
-            android:textStyle="bold" />
-    </LinearLayout>
+    <!-- Speed Gauge Mini -->
+    <com.gps.speedometer.SpeedGaugeView
+        android:id="@+id/widgetSpeedGauge"
+        android:layout_width="130dp"
+        android:layout_height="130dp"
+        android:layout_gravity="center"
+        android:layout_marginTop="4dp" />
 
     <!-- Direction & Acceleration -->
     <TextView
@@ -90,5 +69,17 @@
         android:textSize="11sp"
         android:fontFamily="monospace"
         android:layout_marginTop="2dp" />
+
+    <!-- Hidden text views for compatibility -->
+    <TextView
+        android:id="@+id/widgetSpeedText"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
+    <TextView
+        android:id="@+id/widgetUnitText"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:visibility="gone" />
 
 </LinearLayout>

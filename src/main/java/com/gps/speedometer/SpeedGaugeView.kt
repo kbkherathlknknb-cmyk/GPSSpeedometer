@@ -9,7 +9,8 @@ import android.view.animation.DecelerateInterpolator
 import androidx.core.content.ContextCompat
 
 /**
- * Custom circular speed gauge view with integrated G-Force ring, Light/Dark adaptive colors, and Driving Modes.
+ * Custom speed gauge view with unique shapes, fonts, and dial styles per driving mode.
+ * CALM = thin circular arc, ECO = segmented blocks, TRAFFIC = thick half-gauge, RACE = sharp angular tachometer.
  */
 class SpeedGaugeView @JvmOverloads constructor(
     context: Context,
@@ -18,21 +19,23 @@ class SpeedGaugeView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     companion object {
-        private const val MAX_SPEED = 200f       // km/h or mph max on gauge
-        private const val MAX_GFORCE = 1.5f      // 1.5G max
-        private const val ARC_START_ANGLE = 135f  // Start at bottom-left
-        private const val ARC_SWEEP_ANGLE = 270f  // 270 degree sweep
-        private const val HIGH_SPEED_THRESHOLD = 120f
+        private const val MAX_SPEED = 100f
+        private const val MAX_GFORCE = 1.5f
+        private const val HIGH_SPEED_THRESHOLD = 80f
     }
 
     private var currentSpeed = 0f
     private var targetSpeed = 0f
     private var currentGForce = 0f
     private var speedUnit = "km/h"
-    private var driveMode = 0 // 0=Calm, 1=Eco, 2=Traffic, 3=Aggressive
+    private var driveMode = 0
     private var speedAnimator: ValueAnimator? = null
 
-    // Colors loaded from theme and mode
+    // Mode-specific arc geometry
+    private var arcStartAngle = 135f
+    private var arcSweepAngle = 270f
+
+    // Colors
     private var colorPrimary = Color.CYAN
     private var colorSecondary = Color.parseColor("#FF6D00")
     private var colorGlow = Color.BLUE
@@ -90,6 +93,16 @@ class SpeedGaugeView @JvmOverloads constructor(
         letterSpacing = 0.05f
     }
 
+    private val tickPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.STROKE
+        strokeCap = Paint.Cap.ROUND
+    }
+
+    private val numberPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textAlign = Paint.Align.CENTER
+        typeface = Typeface.create("monospace", Typeface.BOLD)
+    }
+
     private val arcRect = RectF()
     private val gForceRect = RectF()
 
@@ -111,33 +124,73 @@ class SpeedGaugeView @JvmOverloads constructor(
 
     private fun updateModeColors() {
         when (driveMode) {
-            1 -> { // ECO MODE (Emerald & Lime)
+            1 -> { // ECO — Segmented hexagonal blocks
                 colorPrimary = Color.parseColor("#00E676")
                 colorSecondary = Color.parseColor("#FFD54F")
                 colorGlow = Color.parseColor("#3300E676")
                 colorSecondaryGlow = Color.parseColor("#33FFD54F")
                 colorRing = Color.parseColor("#69F0AE")
+                arcStartAngle = 135f
+                arcSweepAngle = 270f
+                speedTextPaint.typeface = Typeface.MONOSPACE
+                unitTextPaint.typeface = Typeface.MONOSPACE
+                arcPaint.pathEffect = DashPathEffect(floatArrayOf(18f, 10f), 0f)
+                arcPaint.strokeWidth = 20f
+                arcPaint.strokeCap = Paint.Cap.BUTT
+                trackPaint.strokeWidth = 20f
+                trackPaint.pathEffect = DashPathEffect(floatArrayOf(18f, 10f), 0f)
+                trackPaint.strokeCap = Paint.Cap.BUTT
             }
-            2 -> { // TRAFFIC MODE (Amber & Gold)
+            2 -> { // TRAFFIC — Wide 180° half-moon gauge
                 colorPrimary = Color.parseColor("#FFB300")
                 colorSecondary = Color.parseColor("#FF7043")
                 colorGlow = Color.parseColor("#33FFB300")
                 colorSecondaryGlow = Color.parseColor("#33FF7043")
                 colorRing = Color.parseColor("#FFCA28")
+                arcStartAngle = 180f
+                arcSweepAngle = 180f
+                speedTextPaint.typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
+                unitTextPaint.typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
+                arcPaint.pathEffect = null
+                arcPaint.strokeWidth = 28f
+                arcPaint.strokeCap = Paint.Cap.ROUND
+                trackPaint.strokeWidth = 28f
+                trackPaint.pathEffect = null
+                trackPaint.strokeCap = Paint.Cap.ROUND
             }
-            3 -> { // AGGRESSIVE MODE (Racing Red & Fiery Orange)
+            3 -> { // RACE — Tight 300° tachometer ring
                 colorPrimary = Color.parseColor("#FF3D00")
                 colorSecondary = Color.parseColor("#FFD600")
                 colorGlow = Color.parseColor("#33FF3D00")
                 colorSecondaryGlow = Color.parseColor("#33FFD600")
                 colorRing = Color.parseColor("#FF6E40")
+                arcStartAngle = 120f
+                arcSweepAngle = 300f
+                speedTextPaint.typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD_ITALIC)
+                unitTextPaint.typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD_ITALIC)
+                arcPaint.pathEffect = null
+                arcPaint.strokeWidth = 14f
+                arcPaint.strokeCap = Paint.Cap.BUTT
+                trackPaint.strokeWidth = 14f
+                trackPaint.pathEffect = null
+                trackPaint.strokeCap = Paint.Cap.BUTT
             }
-            else -> { // CALM MODE (Cyan & Orange)
+            else -> { // CALM — Clean thin 270° arc
                 colorPrimary = ContextCompat.getColor(context, R.color.speed_cyan)
                 colorSecondary = ContextCompat.getColor(context, R.color.speed_orange)
                 colorGlow = ContextCompat.getColor(context, R.color.speed_cyan_glow)
                 colorSecondaryGlow = Color.parseColor("#33FF6D00")
                 colorRing = ContextCompat.getColor(context, R.color.speed_green)
+                arcStartAngle = 135f
+                arcSweepAngle = 270f
+                speedTextPaint.typeface = Typeface.create("sans-serif-light", Typeface.BOLD)
+                unitTextPaint.typeface = Typeface.create("sans-serif-light", Typeface.NORMAL)
+                arcPaint.pathEffect = null
+                arcPaint.strokeWidth = 12f
+                arcPaint.strokeCap = Paint.Cap.ROUND
+                trackPaint.strokeWidth = 12f
+                trackPaint.pathEffect = null
+                trackPaint.strokeCap = Paint.Cap.ROUND
             }
         }
 
@@ -145,6 +198,7 @@ class SpeedGaugeView @JvmOverloads constructor(
         gForceTrackPaint.color = colorTrack
         unitTextPaint.color = textColor
         gForceTextPaint.color = colorRing
+        tickPaint.color = colorTrack
     }
 
     fun setUnit(unit: String) {
@@ -159,9 +213,7 @@ class SpeedGaugeView @JvmOverloads constructor(
 
     fun setSpeed(speed: Float) {
         targetSpeed = speed.coerceIn(0f, MAX_SPEED)
-
-        val animDuration = if (driveMode == 3) 200L else 400L // Faster animation in Aggressive mode!
-
+        val animDuration = if (driveMode == 3) 180L else 400L
         speedAnimator?.cancel()
         speedAnimator = ValueAnimator.ofFloat(currentSpeed, targetSpeed).apply {
             duration = animDuration
@@ -182,60 +234,78 @@ class SpeedGaugeView @JvmOverloads constructor(
         val radius = (minOf(width, height) / 2f) - 28f
         val gRadius = radius - 26f
 
-        arcRect.set(cx - radius, cy - radius, cx + radius, cy + radius)
-        gForceRect.set(cx - gRadius, cy - gRadius, cx + gRadius, cy + gRadius)
+        // Adjust center for TRAFFIC half-gauge (push center down so arc fills top)
+        val effectiveCy = if (driveMode == 2) cy + radius * 0.25f else cy
 
-        // 1. Draw tracks
-        canvas.drawArc(arcRect, ARC_START_ANGLE, ARC_SWEEP_ANGLE, false, trackPaint)
-        canvas.drawArc(gForceRect, ARC_START_ANGLE, ARC_SWEEP_ANGLE, false, gForceTrackPaint)
+        arcRect.set(cx - radius, effectiveCy - radius, cx + radius, effectiveCy + radius)
+        gForceRect.set(cx - gRadius, effectiveCy - gRadius, cx + gRadius, effectiveCy + gRadius)
 
-        // 2. Draw speed arc
+        // 1. Draw track arcs
+        canvas.drawArc(arcRect, arcStartAngle, arcSweepAngle, false, trackPaint)
+        if (driveMode != 2) { // Skip inner ring for half-gauge
+            canvas.drawArc(gForceRect, arcStartAngle, arcSweepAngle, false, gForceTrackPaint)
+        }
+
+        // 2. Draw tick marks
+        drawModeTicks(canvas, cx, effectiveCy, radius)
+
+        // 3. Draw speed number labels on the arc
+        if (driveMode == 3) {
+            drawSpeedNumbers(canvas, cx, effectiveCy, radius)
+        }
+
+        // 4. Draw speed arc
         val ratio = currentSpeed / MAX_SPEED
-        val sweepAngle = ARC_SWEEP_ANGLE * ratio
+        val sweepAngle = arcSweepAngle * ratio
 
         if (sweepAngle > 0f) {
             val isHighSpeed = currentSpeed >= HIGH_SPEED_THRESHOLD
             val mainColor = if (isHighSpeed) colorSecondary else colorPrimary
             val glowCol = if (isHighSpeed) colorSecondaryGlow else colorGlow
 
-            arcPaint.shader = SweepGradient(cx, cy, intArrayOf(colorPrimary, mainColor), null).apply {
+            arcPaint.shader = SweepGradient(cx, effectiveCy, intArrayOf(colorPrimary, mainColor), null).apply {
                 setLocalMatrix(Matrix().apply {
-                    postRotate(ARC_START_ANGLE, cx, cy)
+                    postRotate(arcStartAngle, cx, effectiveCy)
                 })
             }
 
             glowPaint.color = glowCol
-            canvas.drawArc(arcRect, ARC_START_ANGLE, sweepAngle, false, glowPaint)
-            canvas.drawArc(arcRect, ARC_START_ANGLE, sweepAngle, false, arcPaint)
+            glowPaint.strokeWidth = if (driveMode == 2) 40f else 32f
+            canvas.drawArc(arcRect, arcStartAngle, sweepAngle, false, glowPaint)
+            canvas.drawArc(arcRect, arcStartAngle, sweepAngle, false, arcPaint)
         }
 
-        // 3. Draw G-Force arc (inner ring)
-        val gRatio = currentGForce / MAX_GFORCE
-        val gSweep = ARC_SWEEP_ANGLE * gRatio
-        if (gSweep > 0f) {
-            val gCol = when {
-                currentGForce > 0.8f -> colorSecondary
-                currentGForce > 0.4f -> colorPrimary
-                else -> colorRing
+        // 5. Draw G-Force inner arc (except Traffic half-gauge)
+        if (driveMode != 2) {
+            val gRatio = currentGForce / MAX_GFORCE
+            val gSweep = arcSweepAngle * gRatio
+            if (gSweep > 0f) {
+                val gCol = when {
+                    currentGForce > 0.8f -> colorSecondary
+                    currentGForce > 0.4f -> colorPrimary
+                    else -> colorRing
+                }
+                gForceArcPaint.color = gCol
+                canvas.drawArc(gForceRect, arcStartAngle, gSweep, false, gForceArcPaint)
             }
-            gForceArcPaint.color = gCol
-            canvas.drawArc(gForceRect, ARC_START_ANGLE, gSweep, false, gForceArcPaint)
         }
 
-        // 4. Draw speed text
+        // 6. Draw speed text — large and instantly readable
         val speedInt = currentSpeed.toInt()
-        speedTextPaint.textSize = radius * 0.65f
+        speedTextPaint.textSize = radius * 0.85f
+        speedTextPaint.letterSpacing = -0.06f
         speedTextPaint.color = if (currentSpeed >= HIGH_SPEED_THRESHOLD) colorSecondary else colorPrimary
-        val glowCol = if (currentSpeed >= HIGH_SPEED_THRESHOLD) colorSecondaryGlow else colorGlow
-        speedTextPaint.setShadowLayer(25f, 0f, 0f, glowCol)
+        val textGlow = if (currentSpeed >= HIGH_SPEED_THRESHOLD) colorSecondaryGlow else colorGlow
+        speedTextPaint.setShadowLayer(30f, 0f, 0f, textGlow)
 
-        canvas.drawText(speedInt.toString(), cx, cy + speedTextPaint.textSize * 0.18f, speedTextPaint)
+        val textCy = if (driveMode == 2) effectiveCy - radius * 0.05f else effectiveCy + speedTextPaint.textSize * 0.2f
+        canvas.drawText(speedInt.toString(), cx, textCy, speedTextPaint)
 
-        // 5. Draw unit text
-        unitTextPaint.textSize = radius * 0.14f
-        canvas.drawText(speedUnit, cx, cy + speedTextPaint.textSize * 0.18f + unitTextPaint.textSize * 2.2f, unitTextPaint)
+        // 7. Draw unit text
+        unitTextPaint.textSize = radius * 0.17f
+        canvas.drawText(speedUnit, cx, textCy + unitTextPaint.textSize * 1.8f, unitTextPaint)
 
-        // 6. Draw G-force label at top center of inner arc
+        // 8. Draw G-force label
         if (currentGForce > 0.05f) {
             gForceTextPaint.textSize = radius * 0.12f
             gForceTextPaint.color = when {
@@ -243,8 +313,117 @@ class SpeedGaugeView @JvmOverloads constructor(
                 currentGForce > 0.4f -> colorPrimary
                 else -> colorRing
             }
-            canvas.drawText(String.format("%.1f G", currentGForce), cx, cy - radius * 0.45f, gForceTextPaint)
+            val gLabelY = if (driveMode == 2) effectiveCy - radius * 0.65f else effectiveCy - radius * 0.45f
+            canvas.drawText(String.format("%.1f G", currentGForce), cx, gLabelY, gForceTextPaint)
         }
+
+        // 9. Draw needle for RACE mode
+        if (driveMode == 3 && currentSpeed > 0f) {
+            drawNeedle(canvas, cx, effectiveCy, radius)
+        }
+    }
+
+    private fun drawModeTicks(canvas: Canvas, cx: Float, cy: Float, radius: Float) {
+        val tickCount: Int
+        val outerR: Float
+        val innerR: Float
+
+        when (driveMode) {
+            3 -> { // RACE: 40 sharp racing ticks, every 5th is longer
+                tickCount = 40
+                outerR = radius + 16f
+                innerR = radius + 4f
+                tickPaint.strokeWidth = 2.5f
+                tickPaint.color = Color.parseColor("#55FF3D00")
+            }
+            2 -> { // TRAFFIC: 10 bold urban markers
+                tickCount = 10
+                outerR = radius + 18f
+                innerR = radius + 4f
+                tickPaint.strokeWidth = 5f
+                tickPaint.color = Color.parseColor("#55FFB300")
+            }
+            1 -> { // ECO: 12 dots
+                tickCount = 12
+                outerR = radius + 12f
+                innerR = radius + 6f
+                tickPaint.strokeWidth = 3f
+                tickPaint.color = colorTrack
+            }
+            else -> { // CALM: 8 elegant dots
+                tickCount = 8
+                outerR = radius + 12f
+                innerR = radius + 6f
+                tickPaint.strokeWidth = 3f
+                tickPaint.color = colorTrack
+            }
+        }
+
+        val stepAngle = arcSweepAngle / tickCount
+        for (i in 0..tickCount) {
+            val angleDeg = arcStartAngle + i * stepAngle
+            val angleRad = Math.toRadians(angleDeg.toDouble())
+            val isMajor = (driveMode == 3 && i % 5 == 0)
+            val actualInner = if (isMajor) radius - 2f else innerR
+            val x1 = cx + (actualInner * Math.cos(angleRad)).toFloat()
+            val y1 = cy + (actualInner * Math.sin(angleRad)).toFloat()
+            val x2 = cx + (outerR * Math.cos(angleRad)).toFloat()
+            val y2 = cy + (outerR * Math.sin(angleRad)).toFloat()
+            if (isMajor) {
+                tickPaint.strokeWidth = 4f
+                tickPaint.color = Color.parseColor("#AAFF3D00")
+            }
+            canvas.drawLine(x1, y1, x2, y2, tickPaint)
+            if (isMajor) {
+                tickPaint.strokeWidth = 2.5f
+                tickPaint.color = Color.parseColor("#55FF3D00")
+            }
+        }
+    }
+
+    private fun drawSpeedNumbers(canvas: Canvas, cx: Float, cy: Float, radius: Float) {
+        numberPaint.textSize = radius * 0.11f
+        numberPaint.color = Color.parseColor("#88FF6E40")
+        numberPaint.typeface = Typeface.create("sans-serif-condensed", Typeface.BOLD)
+
+        val numR = radius + 26f
+        val numCount = 8
+        val step = arcSweepAngle / numCount
+        val speedStep = MAX_SPEED / numCount
+
+        for (i in 0..numCount) {
+            val angleDeg = arcStartAngle + i * step
+            val angleRad = Math.toRadians(angleDeg.toDouble())
+            val x = cx + (numR * Math.cos(angleRad)).toFloat()
+            val y = cy + (numR * Math.sin(angleRad)).toFloat() + numberPaint.textSize * 0.35f
+            val speedVal = (i * speedStep).toInt()
+            canvas.drawText(speedVal.toString(), x, y, numberPaint)
+        }
+    }
+
+    private fun drawNeedle(canvas: Canvas, cx: Float, cy: Float, radius: Float) {
+        val ratio = currentSpeed / MAX_SPEED
+        val angleDeg = arcStartAngle + arcSweepAngle * ratio
+        val angleRad = Math.toRadians(angleDeg.toDouble())
+
+        val needleLength = radius * 0.75f
+        val endX = cx + (needleLength * Math.cos(angleRad)).toFloat()
+        val endY = cy + (needleLength * Math.sin(angleRad)).toFloat()
+
+        val needlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = if (currentSpeed >= HIGH_SPEED_THRESHOLD) colorSecondary else colorPrimary
+            strokeWidth = 4f
+            strokeCap = Paint.Cap.ROUND
+            setShadowLayer(12f, 0f, 0f, colorGlow)
+        }
+        canvas.drawLine(cx, cy, endX, endY, needlePaint)
+
+        // Center dot
+        val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = colorPrimary
+            style = Paint.Style.FILL
+        }
+        canvas.drawCircle(cx, cy, 8f, dotPaint)
     }
 
     override fun onDetachedFromWindow() {

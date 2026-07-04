@@ -7,7 +7,7 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import kotlin.math.*
 
-class SensorEngine(context: Context) : SensorEventListener {
+class  SensorEngine(context: Context) : SensorEventListener {
 
     interface SensorCallback {
         fun onHeadingChanged(azimuth: Float, cardinal: String)

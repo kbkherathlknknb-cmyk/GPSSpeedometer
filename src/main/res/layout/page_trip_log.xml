@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_primary"
+    android:padding="12dp">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="8dp">
+
+        <ImageView
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@drawable/ic_location_pin"
+            android:tint="@color/speed_cyan"
+            android:contentDescription="Log" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:layout_marginStart="8dp"
+            android:text="TRIP HISTORY LOG"
+            android:textColor="@color/speed_cyan"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:fontFamily="monospace" />
+
+        <TextView
+            android:id="@+id/tripLogCount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="0 trips"
+            android:textColor="@color/text_muted"
+            android:textSize="11sp" />
+    </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:background="@color/text_muted"
+        android:alpha="0.2"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Empty State -->
+    <LinearLayout
+        android:id="@+id/emptyLogState"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:gravity="center"
+        android:visibility="gone">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🗺️"
+            android:textSize="48sp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="No trips logged yet"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:layout_marginTop="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Drive around and reset trip to save stats!"
+            android:textColor="@color/text_muted"
+            android:textSize="12sp"
+            android:layout_marginTop="4dp" />
+    </LinearLayout>
+
+    <!-- Scrollable Trip List -->
+    <ScrollView
+        android:id="@+id/tripLogScroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:clipToPadding="false">
+
+        <LinearLayout
+            android:id="@+id/tripLogItemsContainer"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+    </ScrollView>
+
+    <!-- Bottom Action -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="8dp">
+
+        <TextView
+            android:id="@+id/btnClearTripLog"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="🗑️ CLEAR ALL"
+            android:textColor="@color/speed_orange"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:padding="10dp"
+            android:background="@drawable/btn_subtle_background"
+            android:layout_marginEnd="8dp"
+            android:clickable="true"
+            android:focusable="true" />
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="SWIPE RIGHT ▶ SPEEDOMETER"
+            android:textColor="@color/text_muted"
+            android:textSize="11sp"
+            android:gravity="center"
+            android:padding="10dp" />
+    </LinearLayout>
+
+</LinearLayout>

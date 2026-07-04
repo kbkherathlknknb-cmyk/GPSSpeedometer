@@ -8,15 +8,15 @@
     android:fitsSystemWindows="true"
     tools:context=".MainActivity">
 
-    <!-- ============ STATUS BAR ============ -->
+    <!-- ============ COMPACT STATUS BAR (collapses in PiP/split) ============ -->
     <LinearLayout
         android:id="@+id/statusBar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingHorizontal="16dp"
-        android:paddingVertical="10dp">
+        android:paddingHorizontal="12dp"
+        android:paddingVertical="4dp">
 
         <View
             android:id="@+id/gpsIndicator"
@@ -29,10 +29,10 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="8dp"
+            android:layout_marginStart="6dp"
             android:text="@string/gps_searching"
             android:textColor="@color/text_secondary"
-            android:textSize="12sp" />
+            android:textSize="11sp" />
 
         <TextView
             android:id="@+id/accuracyText"
@@ -40,10 +40,9 @@
             android:layout_height="wrap_content"
             android:text="--"
             android:textColor="@color/text_secondary"
-            android:textSize="12sp"
-            android:layout_marginEnd="12dp" />
+            android:textSize="11sp"
+            android:layout_marginEnd="8dp" />
 
-        <!-- Unit Switcher -->
         <TextView
             android:id="@+id/btnUnitToggle"
             android:layout_width="wrap_content"
@@ -51,341 +50,43 @@
             android:text="KM/H"
             android:textColor="@color/speed_cyan"
             android:textStyle="bold"
-            android:textSize="12sp"
+            android:textSize="11sp"
             android:background="@drawable/btn_subtle_background"
-            android:paddingHorizontal="8dp"
-            android:paddingVertical="4dp"
-            android:layout_marginEnd="8dp"
+            android:paddingHorizontal="6dp"
+            android:paddingVertical="3dp"
+            android:layout_marginEnd="6dp"
             android:clickable="true"
             android:focusable="true" />
 
-        <!-- Three-Dot Menu Button -->
         <ImageView
             android:id="@+id/btnMenu"
-            android:layout_width="32dp"
-            android:layout_height="32dp"
+            android:layout_width="28dp"
+            android:layout_height="28dp"
             android:src="@drawable/ic_more_vert"
             android:tint="@color/text_primary"
             android:background="@drawable/btn_subtle_background"
-            android:padding="6dp"
+            android:padding="5dp"
             android:clickable="true"
             android:focusable="true"
             android:contentDescription="Menu" />
     </LinearLayout>
 
-    <!-- ============ SCROLLABLE RESPONSIVE BODY FOR ROTATION & SPLIT SCREEN ============ -->
-    <ScrollView
+    <!-- ============ VIEWPAGER2 (Dashboard + Trip Log) ============ -->
+    <androidx.viewpager2.widget.ViewPager2
+        android:id="@+id/viewPager"
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_weight="1"
-        android:fillViewport="true"
-        android:clipToPadding="false">
+        android:layout_weight="1" />
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:gravity="center"
-            android:paddingVertical="8dp">
-
-            <!-- ============ SPEED GAUGE ============ -->
-            <FrameLayout
-                android:id="@+id/gaugeContainer"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:minHeight="210dp"
-                android:gravity="center"
-                android:paddingVertical="8dp">
-
-                <com.gps.speedometer.SpeedGaugeView
-                    android:id="@+id/speedGauge"
-                    android:layout_width="230dp"
-                    android:layout_height="230dp"
-                    android:layout_gravity="center" />
-            </FrameLayout>
-
-            <!-- ============ COMPASS ============ -->
-            <LinearLayout
-                android:id="@+id/compassGroup"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:orientation="horizontal"
-                android:gravity="center_vertical"
-                android:background="@drawable/compass_background"
-                android:layout_marginBottom="8dp"
-                android:paddingHorizontal="12dp"
-                android:paddingVertical="6dp">
-
-                <ImageView
-                    android:id="@+id/compassArrow"
-                    android:layout_width="22dp"
-                    android:layout_height="22dp"
-                    android:src="@drawable/ic_compass_arrow"
-                    android:contentDescription="Compass" />
-
-                <TextView
-                    android:id="@+id/headingText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:text="0°"
-                    android:textColor="@color/speed_cyan"
-                    android:textSize="14sp"
-                    android:fontFamily="monospace"
-                    android:textStyle="bold"
-                    android:minWidth="40dp"
-                    android:gravity="end" />
-
-                <TextView
-                    android:id="@+id/cardinalText"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="6dp"
-                    android:text="N"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    android:minWidth="24dp" />
-            </LinearLayout>
-
-            <!-- ============ SPORTY ACCELERATION TELEMETRY BAR ============ -->
-            <com.gps.speedometer.SportyAccelerationView
-                android:id="@+id/sportyAccelView"
-                android:layout_width="match_parent"
-                android:layout_height="64dp"
-                android:layout_marginHorizontal="16dp"
-                android:layout_marginBottom="12dp" />
-
-            <!-- ============ TRIP STATS (5 CARDS) ============ -->
-            <LinearLayout
-                android:id="@+id/statsGroup"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:paddingHorizontal="8dp"
-                android:layout_marginBottom="12dp">
-
-                <!-- Max Speed -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginHorizontal="2dp"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/card_background"
-                    android:paddingVertical="8dp">
-
-                    <TextView
-                        android:id="@+id/maxSpeed"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textColor="@color/text_primary"
-                        android:fontFamily="monospace"
-                        android:textStyle="bold"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/max_label"
-                        android:textColor="@color/text_muted"
-                        android:textSize="10sp"
-                        android:textAllCaps="true" />
-                </LinearLayout>
-
-                <!-- Avg Speed -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginHorizontal="2dp"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/card_background"
-                    android:paddingVertical="8dp">
-
-                    <TextView
-                        android:id="@+id/avgSpeed"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0"
-                        android:textColor="@color/text_primary"
-                        android:fontFamily="monospace"
-                        android:textStyle="bold"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/avg_label"
-                        android:textColor="@color/text_muted"
-                        android:textSize="10sp"
-                        android:textAllCaps="true" />
-                </LinearLayout>
-
-                <!-- Trip Distance -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginHorizontal="2dp"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/card_background"
-                    android:paddingVertical="8dp">
-
-                    <TextView
-                        android:id="@+id/distanceText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0.0"
-                        android:textColor="@color/text_primary"
-                        android:fontFamily="monospace"
-                        android:textStyle="bold"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/km_label"
-                        android:textColor="@color/text_muted"
-                        android:textSize="10sp"
-                        android:textAllCaps="true" />
-                </LinearLayout>
-
-                <!-- Total Odo -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginHorizontal="2dp"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/card_background"
-                    android:paddingVertical="8dp">
-
-                    <TextView
-                        android:id="@+id/totalOdoText"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0.0"
-                        android:textColor="@color/speed_green"
-                        android:fontFamily="monospace"
-                        android:textStyle="bold"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/total_odo_label"
-                        android:textColor="@color/text_muted"
-                        android:textSize="10sp"
-                        android:textAllCaps="true" />
-                </LinearLayout>
-
-                <!-- Trip Time -->
-                <LinearLayout
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:layout_marginHorizontal="2dp"
-                    android:orientation="vertical"
-                    android:gravity="center"
-                    android:background="@drawable/card_background"
-                    android:paddingVertical="8dp">
-
-                    <TextView
-                        android:id="@+id/tripTime"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="00:00"
-                        android:textColor="@color/text_primary"
-                        android:fontFamily="monospace"
-                        android:textStyle="bold"
-                        android:textSize="16sp" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="@string/time_label"
-                        android:textColor="@color/text_muted"
-                        android:textSize="10sp"
-                        android:textAllCaps="true" />
-                </LinearLayout>
-            </LinearLayout>
-
-            <!-- ============ TRIP ACTIONS BAR (RESET & TRIP LOG) ============ -->
-            <LinearLayout
-                android:id="@+id/tripActionsBar"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="center"
-                android:layout_marginBottom="8dp"
-                android:orientation="horizontal">
-
-                <LinearLayout
-                    android:id="@+id/btnResetTrip"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/btn_subtle_background"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="8dp"
-                    android:layout_marginEnd="12dp"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/ic_refresh"
-                        android:tint="@color/text_secondary"
-                        android:contentDescription="Reset" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:text="@string/reset_trip"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp" />
-                </LinearLayout>
-
-                <LinearLayout
-                    android:id="@+id/btnTripLog"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:orientation="horizontal"
-                    android:gravity="center_vertical"
-                    android:background="@drawable/btn_subtle_background"
-                    android:paddingHorizontal="16dp"
-                    android:paddingVertical="8dp"
-                    android:clickable="true"
-                    android:focusable="true">
-
-                    <ImageView
-                        android:layout_width="16dp"
-                        android:layout_height="16dp"
-                        android:src="@drawable/ic_location_pin"
-                        android:tint="@color/speed_cyan"
-                        android:contentDescription="Log" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginStart="6dp"
-                        android:text="Trip Log"
-                        android:textColor="@color/text_secondary"
-                        android:textSize="13sp" />
-                </LinearLayout>
-            </LinearLayout>
-
-        </LinearLayout>
-    </ScrollView>
+    <!-- ============ SWIPE HINT (bottom) ============ -->
+    <TextView
+        android:id="@+id/swipeHint"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="◀ SWIPE LEFT FOR TRIP LOG"
+        android:textColor="@color/text_muted"
+        android:textSize="10sp"
+        android:gravity="center"
+        android:paddingVertical="3dp" />
 
 </LinearLayout>
