@@ -58,7 +58,7 @@ Access via the clean Three-Dot top menu (`⋮`) to transform color schemes and g
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/yourusername/gps-speedometer-android.git
+git clone https://github.com/kbkherathlknknb-cmyk/gps-speedometer-android.git
 cd gps-speedometer-android
 ```
 
