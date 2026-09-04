@@ -30,6 +30,20 @@ class SpeedGaugeView @JvmOverloads constructor(
     private var speedUnit = "km/h"
     private var driveMode = 0
     private var speedAnimator: ValueAnimator? = null
+    private val speedInterpolator = DecelerateInterpolator()
+    private var gradientCx = Float.NaN
+    private var gradientCy = Float.NaN
+    private var gradientPrimary = Int.MIN_VALUE
+    private var gradientMain = Int.MIN_VALUE
+    private var speedGradient: SweepGradient? = null
+    private val gradientMatrix = Matrix()
+    private val needlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        strokeWidth = 4f
+        strokeCap = Paint.Cap.ROUND
+    }
+    private val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        style = Paint.Style.FILL
+    }
 
     // Mode-specific arc geometry
     private var arcStartAngle = 135f
@@ -212,18 +226,23 @@ class SpeedGaugeView @JvmOverloads constructor(
     }
 
     fun setSpeed(speed: Float) {
-        targetSpeed = speed.coerceIn(0f, MAX_SPEED)
+        val clamped = speed.coerceIn(0f, MAX_SPEED)
+        if (kotlin.math.abs(clamped - targetSpeed) < 0.2f) return
+        targetSpeed = clamped
         val animDuration = if (driveMode == 3) 180L else 400L
-        speedAnimator?.cancel()
-        speedAnimator = ValueAnimator.ofFloat(currentSpeed, targetSpeed).apply {
-            duration = animDuration
-            interpolator = DecelerateInterpolator()
-            addUpdateListener { anim ->
-                currentSpeed = anim.animatedValue as Float
-                invalidate()
+        if (speedAnimator == null) {
+            speedAnimator = ValueAnimator.ofFloat(currentSpeed, targetSpeed).apply {
+                interpolator = speedInterpolator
+                addUpdateListener { anim ->
+                    currentSpeed = anim.animatedValue as Float
+                    invalidate()
+                }
             }
-            start()
         }
+        speedAnimator?.cancel()
+        speedAnimator?.duration = animDuration
+        speedAnimator?.setFloatValues(currentSpeed, targetSpeed)
+        speedAnimator?.start()
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -263,11 +282,18 @@ class SpeedGaugeView @JvmOverloads constructor(
             val mainColor = if (isHighSpeed) colorSecondary else colorPrimary
             val glowCol = if (isHighSpeed) colorSecondaryGlow else colorGlow
 
-            arcPaint.shader = SweepGradient(cx, effectiveCy, intArrayOf(colorPrimary, mainColor), null).apply {
-                setLocalMatrix(Matrix().apply {
-                    postRotate(arcStartAngle, cx, effectiveCy)
-                })
+            if (speedGradient == null || cx != gradientCx || effectiveCy != gradientCy ||
+                gradientPrimary != colorPrimary || gradientMain != mainColor) {
+                speedGradient = SweepGradient(cx, effectiveCy, intArrayOf(colorPrimary, mainColor), null)
+                gradientCx = cx
+                gradientCy = effectiveCy
+                gradientPrimary = colorPrimary
+                gradientMain = mainColor
             }
+            gradientMatrix.reset()
+            gradientMatrix.postRotate(arcStartAngle, cx, effectiveCy)
+            speedGradient?.setLocalMatrix(gradientMatrix)
+            arcPaint.shader = speedGradient
 
             glowPaint.color = glowCol
             glowPaint.strokeWidth = if (driveMode == 2) 40f else 32f
@@ -410,19 +436,12 @@ class SpeedGaugeView @JvmOverloads constructor(
         val endX = cx + (needleLength * Math.cos(angleRad)).toFloat()
         val endY = cy + (needleLength * Math.sin(angleRad)).toFloat()
 
-        val needlePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = if (currentSpeed >= HIGH_SPEED_THRESHOLD) colorSecondary else colorPrimary
-            strokeWidth = 4f
-            strokeCap = Paint.Cap.ROUND
-            setShadowLayer(12f, 0f, 0f, colorGlow)
-        }
+        needlePaint.color = if (currentSpeed >= HIGH_SPEED_THRESHOLD) colorSecondary else colorPrimary
+        needlePaint.setShadowLayer(12f, 0f, 0f, colorGlow)
         canvas.drawLine(cx, cy, endX, endY, needlePaint)
 
         // Center dot
-        val dotPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = colorPrimary
-            style = Paint.Style.FILL
-        }
+        dotPaint.color = colorPrimary
         canvas.drawCircle(cx, cy, 8f, dotPaint)
     }
 
