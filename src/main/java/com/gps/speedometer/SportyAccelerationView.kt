@@ -32,6 +32,7 @@ class SportyAccelerationView @JvmOverloads constructor(
     private var sprintStartTime = 0L
     private var isSprintRunning = false
     private var lastSprintDisplay = "⚡ 0-50 km/h: READY"
+    private var telemetryCenterLabel = "+0.0 m/s² (+0.00 G)"
 
     private val segmentRect = RectF()
     private val paintLit = Paint(Paint.ANTI_ALIAS_FLAG).apply { style = Paint.Style.FILL }
@@ -129,11 +130,12 @@ class SportyAccelerationView @JvmOverloads constructor(
             val elapsed = (System.currentTimeMillis() - sprintStartTime) / 1000f
             if (speedVal >= targetSpeed) {
                 isSprintRunning = false
-                lastSprintDisplay = String.format("⚡ %s: %.2fs 🏆", sprintLabel, elapsed)
+                lastSprintDisplay = "⚡ $sprintLabel: ${formatSeconds(elapsed, 2)}s 🏆"
             } else {
-                lastSprintDisplay = String.format("⚡ %s: %.1fs...", sprintLabel, elapsed)
+                lastSprintDisplay = "⚡ $sprintLabel: ${formatSeconds(elapsed, 1)}s..."
             }
         }
+        telemetryCenterLabel = buildTelemetryLabel(maxOf(0f, currentAccelMs2), maxOf(0f, currentGForce))
 
         invalidate()
     }
@@ -158,9 +160,7 @@ class SportyAccelerationView @JvmOverloads constructor(
         textPaint.textSize = h * 0.18f
         textPaint.color = textPrimaryCol
         val displayG = maxOf(0f, currentGForce)
-        val displayAccel = maxOf(0f, currentAccelMs2)
-        val centerStr = String.format("+%.1f m/s² (+%.2f G)", displayAccel, displayG)
-        canvas.drawText(centerStr, w / 2f, h * 0.22f, textPaint)
+        canvas.drawText(telemetryCenterLabel, w / 2f, h * 0.22f, textPaint)
 
         // 2. Draw 30 segmented LED bar from left (index 0) to right (index 29)
         val barTop = h * 0.32f
@@ -174,6 +174,7 @@ class SportyAccelerationView @JvmOverloads constructor(
         val gRatio = (displayG / MAX_G_DISPLAY).coerceIn(0f, 1f)
         val litCount = (gRatio * TOTAL_SEGMENTS).roundToInt()
 
+        var lastShadowColor = Color.TRANSPARENT
         for (i in 0 until TOTAL_SEGMENTS) {
             val left = startX + i * (segmentWidth + segmentGap)
             segmentRect.set(left, barTop, left + segmentWidth, barBottom)
@@ -193,7 +194,10 @@ class SportyAccelerationView @JvmOverloads constructor(
 
             if (isLit) {
                 paintLit.color = segColor
-                paintLit.setShadowLayer(8f, 0f, 0f, segColor)
+                if (lastShadowColor != segColor) {
+                    paintLit.setShadowLayer(8f, 0f, 0f, segColor)
+                    lastShadowColor = segColor
+                }
                 canvas.drawRoundRect(segmentRect, 4f, 4f, paintLit)
             } else {
                 canvas.drawRoundRect(segmentRect, 4f, 4f, paintDim)
@@ -205,5 +209,24 @@ class SportyAccelerationView @JvmOverloads constructor(
         textPaint.color = if (lastSprintDisplay.contains("🏆")) colorWarn else textPrimaryCol
         textPaint.setShadowLayer(0f, 0f, 0f, Color.TRANSPARENT)
         canvas.drawText(lastSprintDisplay, w / 2f, h * 0.92f, textPaint)
+    }
+
+    private fun buildTelemetryLabel(accel: Float, gForce: Float): String {
+        return "+${formatSeconds(accel, 1)} m/s² (+${formatSeconds(gForce, 2)} G)"
+    }
+
+    private fun formatSeconds(value: Float, decimals: Int): String {
+        val factor = if (decimals == 1) 10f else 100f
+        val rounded = (value * factor).roundToInt() / factor
+        return if (decimals == 1) {
+            val intPart = rounded.toInt()
+            val frac = ((rounded - intPart) * 10).roundToInt().coerceIn(0, 9)
+            "$intPart.$frac"
+        } else {
+            val intPart = rounded.toInt()
+            val frac = ((rounded - intPart) * 100).roundToInt().coerceIn(0, 99)
+            val fracText = if (frac < 10) "0$frac" else frac.toString()
+            "$intPart.$fracText"
+        }
     }
 }

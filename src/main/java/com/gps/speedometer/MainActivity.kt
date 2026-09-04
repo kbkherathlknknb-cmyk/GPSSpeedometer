@@ -1,10 +1,8 @@
 package com.gps.speedometer
 
 import android.Manifest
-import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.app.PictureInPictureParams
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration as AndroidConfig
@@ -13,6 +11,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
+import android.os.HandlerThread
 import android.os.Looper
 import android.provider.Settings
 import android.util.Rational
@@ -80,9 +79,12 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationCallback: LocationCallback
     private lateinit var sensorEngine: SensorEngine
+    private lateinit var appPrefs: android.content.SharedPreferences
     private var currentLocation: Location? = null
     private var isMph = false
     private var driveMode = 0
+    private var locationUpdatesActive = false
+    private var hasLocationPermission = false
 
     // ============================
     // Trip data & Total Odometer
@@ -97,8 +99,14 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
     private var tripActive = false
 
     // Speed smoothing
-    private val speedHistory = mutableListOf<Float>()
     private val SMOOTH_SIZE = 3
+    private val speedHistory = FloatArray(SMOOTH_SIZE)
+    private var speedHistoryIndex = 0
+    private var speedHistoryCount = 0
+    private var speedHistorySum = 0f
+
+    private var lastOdoPersistMs = 0L
+    private val ODO_PERSIST_INTERVAL_MS = 5_000L
 
     // Timer
     private val timerHandler = Handler(Looper.getMainLooper())
@@ -107,17 +115,25 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
             if (tripActive && tripStartTime > 0 && ::tripTimeText.isInitialized) {
                 tripTimeText.text = formatDuration(System.currentTimeMillis() - tripStartTime)
             }
-            timerHandler.postDelayed(this, 1000)
+            if (timerRunning) {
+                timerHandler.postDelayed(this, 1000)
+            }
         }
     }
+    private var timerRunning = false
+
+    private val locationThread = HandlerThread("gps-location-thread")
+    private lateinit var locationHandler: Handler
 
     private val locationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
     ) { permissions ->
         if (permissions[Manifest.permission.ACCESS_FINE_LOCATION] == true ||
             permissions[Manifest.permission.ACCESS_COARSE_LOCATION] == true) {
+            hasLocationPermission = true
             startLocationUpdates()
         } else {
+            hasLocationPermission = false
             setGpsStatus("disconnected", getString(R.string.gps_denied))
         }
     }
@@ -125,13 +141,15 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
-        driveMode = prefs.getInt("DRIVE_MODE", 0)
-        isMph = prefs.getBoolean("IS_MPH", false)
-        totalOdoKm = prefs.getFloat("TOTAL_ODO_KM", 0f).toDouble()
+        appPrefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        driveMode = appPrefs.getInt("DRIVE_MODE", 0)
+        isMph = appPrefs.getBoolean("IS_MPH", false)
+        totalOdoKm = appPrefs.getFloat("TOTAL_ODO_KM", 0f).toDouble()
 
         setContentView(R.layout.activity_main)
         sensorEngine = SensorEngine(this)
+        locationThread.start()
+        locationHandler = Handler(locationThread.looper)
 
         bindTopBar()
         setupViewPager()
@@ -140,24 +158,32 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
         createLocationCallback()
-        timerHandler.post(timerRunnable)
         checkAndRequestPermissions()
     }
 
     override fun onResume() {
         super.onResume()
         sensorEngine.start(this)
+        startTimer()
+        if (hasLocationPermission) {
+            startLocationUpdates()
+        }
     }
 
     override fun onPause() {
         super.onPause()
+        stopLocationUpdates()
+        stopTimer()
+        persistOdometer(force = true)
         sensorEngine.stop()
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        fusedLocationClient.removeLocationUpdates(locationCallback)
-        timerHandler.removeCallbacks(timerRunnable)
+        stopLocationUpdates()
+        stopTimer()
+        persistOdometer(force = true)
+        locationThread.quitSafely()
         sensorEngine.stop()
     }
 
@@ -206,8 +232,7 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
         btnClearTripLog = tripLogView.findViewById(R.id.btnClearTripLog)
 
         btnClearTripLog.setOnClickListener {
-            val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
-            prefs.edit().putString("TRIP_LOG_JSON", "[]").apply()
+            appPrefs.edit().putString("TRIP_LOG_JSON", "[]").apply()
             refreshTripLogPage()
             Toast.makeText(this, "Trip log cleared!", Toast.LENGTH_SHORT).show()
         }
@@ -241,8 +266,7 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
     private fun refreshTripLogPage() {
         if (!::tripLogItemsContainer.isInitialized) return
         tripLogItemsContainer.removeAllViews()
-        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
-        val jsonStr = prefs.getString("TRIP_LOG_JSON", "[]") ?: "[]"
+        val jsonStr = appPrefs.getString("TRIP_LOG_JSON", "[]") ?: "[]"
         val array = JSONArray(jsonStr)
 
         if (array.length() == 0) {
@@ -267,7 +291,7 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
     private fun setupTopBarListeners() {
         btnUnitToggle.setOnClickListener {
             isMph = !isMph
-            getSharedPreferences("app_prefs", MODE_PRIVATE).edit().putBoolean("IS_MPH", isMph).apply()
+            appPrefs.edit().putBoolean("IS_MPH", isMph).apply()
             applyDriveModeAndUnit()
             currentLocation?.let { onLocationUpdate(it) }
         }
@@ -301,9 +325,7 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
         if (::headingText.isInitialized) {
             headingText.text = "${azimuth.roundToInt()}°"
             cardinalText.text = cardinal
-            ObjectAnimator.ofFloat(compassArrow, "rotation", compassArrow.rotation, azimuth).apply {
-                duration = 300; start()
-            }
+            compassArrow.animate().rotation(azimuth).setDuration(180).start()
         }
     }
 
@@ -345,7 +367,10 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
     // ============================
     private fun checkAndRequestPermissions() {
         when {
-            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED -> startLocationUpdates()
+            ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED -> {
+                hasLocationPermission = true
+                startLocationUpdates()
+            }
             shouldShowRequestPermissionRationale(Manifest.permission.ACCESS_FINE_LOCATION) -> {
                 AlertDialog.Builder(this)
                     .setTitle("GPS Permission Required")
@@ -361,16 +386,26 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
 
     @SuppressLint("MissingPermission")
     private fun startLocationUpdates() {
+        if (locationUpdatesActive || !hasLocationPermission) return
         setGpsStatus("searching", getString(R.string.gps_searching))
         val req = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, 1000)
             .setMinUpdateIntervalMillis(500).setWaitForAccurateLocation(false).build()
-        fusedLocationClient.requestLocationUpdates(req, locationCallback, Looper.getMainLooper())
+        fusedLocationClient.requestLocationUpdates(req, locationCallback, locationHandler.looper)
+        locationUpdatesActive = true
+    }
+
+    private fun stopLocationUpdates() {
+        if (!locationUpdatesActive) return
+        fusedLocationClient.removeLocationUpdates(locationCallback)
+        locationUpdatesActive = false
     }
 
     private fun createLocationCallback() {
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(result: LocationResult) {
-                result.lastLocation?.let { onLocationUpdate(it) }
+                result.lastLocation?.let { location ->
+                    runOnUiThread { onLocationUpdate(location) }
+                }
             }
         }
     }
@@ -385,9 +420,7 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
 
         var speedRaw = if (location.hasSpeed() && location.speed >= 0f) location.speed else 0f
         val converted = if (isMph) speedRaw * 2.23694f else speedRaw * 3.6f
-        speedHistory.add(converted)
-        if (speedHistory.size > SMOOTH_SIZE) speedHistory.removeAt(0)
-        val smoothed = speedHistory.average().toFloat()
+        val smoothed = addSpeedSample(converted)
         val display = if (smoothed < 1.5f) 0f else smoothed
 
         if (::speedGauge.isInitialized) {
@@ -430,7 +463,7 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
                         tripDistance += (if (isMph) dKm * 0.621371 else dKm).toFloat()
                         distanceText.text = String.format("%.1f", tripDistance)
                         totalOdoKm += dKm
-                        getSharedPreferences("app_prefs", MODE_PRIVATE).edit().putFloat("TOTAL_ODO_KM", totalOdoKm.toFloat()).apply()
+                        persistOdometer()
                         updateOdoText()
                     }
                 }
@@ -459,8 +492,7 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
 
     private fun saveCurrentTripToLog() {
         if (tripDistance < 0.1f) { Toast.makeText(this, "Trip too short!", Toast.LENGTH_SHORT).show(); return }
-        val prefs = getSharedPreferences("app_prefs", MODE_PRIVATE)
-        val oldArray = JSONArray(prefs.getString("TRIP_LOG_JSON", "[]") ?: "[]")
+        val oldArray = JSONArray(appPrefs.getString("TRIP_LOG_JSON", "[]") ?: "[]")
         val dateStr = SimpleDateFormat("MMM d, h:mm a", Locale.getDefault()).format(Date())
         val durStr = if (tripStartTime > 0) formatDuration(System.currentTimeMillis() - tripStartTime) else "00:00"
         val avgVal = if (tripSpeedCount > 0) (tripTotalSpeed / tripSpeedCount).toInt() else 0
@@ -486,7 +518,7 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
             trimmed.put(newArray.getJSONObject(i))
         }
 
-        prefs.edit().putString("TRIP_LOG_JSON", trimmed.toString()).apply()
+        appPrefs.edit().putString("TRIP_LOG_JSON", trimmed.toString()).apply()
         Toast.makeText(this, "Trip saved! 📝", Toast.LENGTH_SHORT).show()
     }
 
@@ -513,7 +545,7 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
 
         fun sel(mode: Int, name: String) {
             driveMode = mode
-            getSharedPreferences("app_prefs", MODE_PRIVATE).edit().putInt("DRIVE_MODE", driveMode).apply()
+            appPrefs.edit().putInt("DRIVE_MODE", driveMode).apply()
             applyDriveModeAndUnit(); hl(mode)
             Toast.makeText(this, "Switched to $name", Toast.LENGTH_SHORT).show()
         }
@@ -543,7 +575,7 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
     private fun toggleTheme() {
         val cur = resources.configuration.uiMode and AndroidConfig.UI_MODE_NIGHT_MASK
         val newMode = if (cur == AndroidConfig.UI_MODE_NIGHT_YES) AppCompatDelegate.MODE_NIGHT_NO else AppCompatDelegate.MODE_NIGHT_YES
-        getSharedPreferences("app_prefs", MODE_PRIVATE).edit().putInt("NIGHT_MODE", newMode).apply()
+        appPrefs.edit().putInt("NIGHT_MODE", newMode).apply()
         AppCompatDelegate.setDefaultNightMode(newMode)
         recreate()
     }
@@ -565,5 +597,37 @@ class MainActivity : AppCompatActivity(), SensorEngine.SensorCallback {
     private fun formatDuration(ms: Long): String {
         val s = ms / 1000; val h = s / 3600; val m = (s % 3600) / 60; val sec = s % 60
         return if (h > 0) String.format("%d:%02d:%02d", h, m, sec) else String.format("%02d:%02d", m, sec)
+    }
+
+    private fun startTimer() {
+        if (timerRunning) return
+        timerRunning = true
+        timerHandler.post(timerRunnable)
+    }
+
+    private fun stopTimer() {
+        timerRunning = false
+        timerHandler.removeCallbacks(timerRunnable)
+    }
+
+    private fun addSpeedSample(value: Float): Float {
+        if (speedHistoryCount < SMOOTH_SIZE) {
+            speedHistory[speedHistoryIndex] = value
+            speedHistorySum += value
+            speedHistoryCount++
+        } else {
+            speedHistorySum -= speedHistory[speedHistoryIndex]
+            speedHistory[speedHistoryIndex] = value
+            speedHistorySum += value
+        }
+        speedHistoryIndex = (speedHistoryIndex + 1) % SMOOTH_SIZE
+        return speedHistorySum / speedHistoryCount
+    }
+
+    private fun persistOdometer(force: Boolean = false) {
+        val now = System.currentTimeMillis()
+        if (!force && now - lastOdoPersistMs < ODO_PERSIST_INTERVAL_MS) return
+        appPrefs.edit().putFloat("TOTAL_ODO_KM", totalOdoKm.toFloat()).apply()
+        lastOdoPersistMs = now
     }
 }
