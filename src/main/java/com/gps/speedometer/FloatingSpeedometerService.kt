@@ -40,6 +40,7 @@ class FloatingSpeedometerService : Service(), SensorEngine.SensorCallback {
     private var currentDirection = "N"
     private var currentGForce = 0.0f
     private var isMph = false
+    private var lastRenderedSpeed = -1
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -150,14 +151,21 @@ class FloatingSpeedometerService : Service(), SensorEngine.SensorCallback {
 
     private fun updateSpeed(location: Location) {
         if (!location.hasSpeed() || location.speed < 0.5f) {
-            widgetSpeedText?.text = "0"
-            widgetGauge?.setSpeed(0f)
+            if (lastRenderedSpeed != 0) {
+                widgetSpeedText?.text = "0"
+                widgetGauge?.setSpeed(0f)
+                lastRenderedSpeed = 0
+            }
             return
         }
         val speedMs = location.speed
         val displaySpeed = if (isMph) speedMs * 2.23694f else speedMs * 3.6f
-        widgetSpeedText?.text = displaySpeed.roundToInt().toString()
-        widgetGauge?.setSpeed(displaySpeed)
+        val rounded = displaySpeed.roundToInt()
+        if (rounded != lastRenderedSpeed) {
+            widgetSpeedText?.text = rounded.toString()
+            widgetGauge?.setSpeed(displaySpeed)
+            lastRenderedSpeed = rounded
+        }
     }
 
     override fun onHeadingChanged(azimuth: Float, cardinal: String) {
@@ -172,8 +180,12 @@ class FloatingSpeedometerService : Service(), SensorEngine.SensorCallback {
     }
 
     private fun updateSubText() {
-        val gFormatted = String.format("%.1fG", currentGForce)
-        widgetSubText?.text = "$currentDirection • $gFormatted"
+        val g10 = (currentGForce * 10f).roundToInt()
+        val absVal = kotlin.math.abs(g10)
+        val intPart = absVal / 10
+        val frac = absVal % 10
+        val sign = if (g10 < 0) "-" else ""
+        widgetSubText?.text = "$currentDirection • ${sign}${intPart}.${frac}G"
     }
 
     private fun createNotificationChannel() {
